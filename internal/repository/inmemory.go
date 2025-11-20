@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"math/rand/v2"
 	"slices"
 	"sync"
@@ -66,14 +65,18 @@ func (i *inmemoryImpl) CreatePullRequest(_ context.Context, id string, name stri
 		return entity.PR{}, err
 	}
 
-	return entity.PR{
+	res := &entity.PR{
 		ID:                  id,
 		Name:                name,
 		AuthorID:            authorID,
 		Status:              entity.OPEN,
 		CreatedAt:           time.Now(),
-		AssignedReviewersID: pickTwoWithExclusion(team, authorID),
-	}, nil
+		AssignedReviewersID: i.pickTwoWithExclusion(team, authorID),
+	}
+
+	i.prRepo[id] = res
+
+	return *res, nil
 }
 
 func (i *inmemoryImpl) MergePullRequest(_ context.Context, id string) (entity.PR, error) {
@@ -95,33 +98,33 @@ func (i *inmemoryImpl) MergePullRequest(_ context.Context, id string) (entity.PR
 	return *pr, nil
 }
 
-func (i *inmemoryImpl) ReassignPullRequest(_ context.Context, id string, oldUserID string) (entity.PR, error) {
+func (i *inmemoryImpl) ReassignPullRequest(_ context.Context, id string, oldUserID string) (entity.PR, string, error) {
 	i.prRepoMx.Lock()
 	defer i.prRepoMx.Unlock()
 
 	pr, ok := i.prRepo[id]
 	if !ok {
-		return entity.PR{}, entity.ErrPRNotFound
+		return entity.PR{}, "", entity.ErrPRNotFound
 	}
 
 	team, err := i.getUserTeamIDs(oldUserID)
 	if err != nil {
-		return entity.PR{}, err
+		return entity.PR{}, "", err
 	}
 
-	replaced, err := pickWithExclusion(team, []string{pr.AuthorID, oldUserID})
+	replaced, err := i.pickWithExclusion(team, []string{pr.AuthorID, oldUserID})
 	if err != nil {
-		return entity.PR{}, err
+		return entity.PR{}, "", err
 	}
 
 	for i, id := range pr.AssignedReviewersID {
 		if id == oldUserID {
 			pr.AssignedReviewersID[i] = replaced
-			return *pr, nil
+			return *pr, replaced, nil
 		}
 	}
 
-	return entity.PR{}, entity.ErrUserNotFound
+	return entity.PR{}, "", entity.ErrReviewerIsNotAssignedToPR
 }
 
 func (i *inmemoryImpl) SetIsActiveUser(_ context.Context, id string, isActive bool) (entity.User, error) {
@@ -176,6 +179,7 @@ func (i *inmemoryImpl) addUser(user entity.User) {
 
 	if !ok {
 		i.userRepo[user.ID] = &entity.User{}
+		u = &user
 	}
 
 	i.userRepo[user.ID].ID = u.ID
@@ -196,34 +200,55 @@ func (i *inmemoryImpl) GetTeam(ctx context.Context, name string) (entity.Team, e
 	return *team, nil
 }
 
-func pickWithExclusion(ids []string, exclude []string) (string, error) {
-	if len(ids)-len(exclude) <= 0 {
-		return "", errors.New("nothing to pick")
+func (i *inmemoryImpl) pickWithExclusion(ids []string, exclude []string) (string, error) {
+	i.userRepoMx.RLock()
+	defer i.userRepoMx.RUnlock()
+
+	excludeSet := make(map[string]struct{}, len(exclude))
+	for _, e := range exclude {
+		excludeSet[e] = struct{}{}
 	}
 
-	candidates := make([]string, 0, len(ids)-len(exclude))
-
-	for _, m := range ids {
-		if !slices.Contains(exclude, m) {
-			candidates = append(candidates, m)
+	candidates := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if _, blocked := excludeSet[id]; blocked {
+			continue
 		}
+
+		u, ok := i.userRepo[id]
+		if !ok || u == nil {
+			continue
+		}
+		if !u.IsActive {
+			continue
+		}
+
+		candidates = append(candidates, id)
+	}
+
+	if len(candidates) == 0 {
+		return "", entity.ErrPRNoCandidates
 	}
 
 	return candidates[rand.N(len(candidates))], nil
 }
 
-func pickTwoWithExclusion(ids []string, exclude string) []string {
-	excludes := make([]string, 1)
-	excludes[0] = exclude
+func (i *inmemoryImpl) pickTwoWithExclusion(ids []string, exclude string) []string {
+	excludes := []string{exclude}
+	res := make([]string, 0, 2)
 
-	if len(ids) < 2 {
-		return ids
+	first, err := i.pickWithExclusion(ids, excludes)
+	if err != nil {
+		return res
 	}
+	res = append(res, first)
+	excludes = append(excludes, first)
 
-	res := make([]string, 2)
-	res[0], _ = pickWithExclusion(ids, excludes)
-	excludes = append(excludes, res[0])
-	res[1], _ = pickWithExclusion(ids, excludes)
+	second, err := i.pickWithExclusion(ids, excludes)
+	if err != nil {
+		return res
+	}
+	res = append(res, second)
 
 	return res
 }

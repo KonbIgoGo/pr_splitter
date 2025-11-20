@@ -1,5 +1,25 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-func (i *implementation) PostUsersSetIsActive(c *gin.Context) {}
+	"github.com/KonbIgoGo/pr_splitter/generated"
+	"github.com/gin-gonic/gin"
+)
+
+func (i *implementation) PostUsersSetIsActive(c *gin.Context) {
+	var body generated.PostUsersSetIsActiveJSONBody
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, struct{}{})
+		return
+	}
+
+	user, err := i.userUseCase.UserSetIsActive(c.Request.Context(), body.UserId, body.IsActive)
+	if err != nil {
+		code, errRes := convertErrors(err)
+		c.JSON(code, errRes)
+	}
+
+	c.JSON(http.StatusOK, user)
+}

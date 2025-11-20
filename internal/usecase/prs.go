@@ -49,10 +49,10 @@ func (i *useCaseImpl) PullRequestMerge(ctx context.Context, id string) (generate
 		Status:            generated.PullRequestStatus(status),
 	}, nil
 }
-func (i *useCaseImpl) PullRequestReassign(ctx context.Context, id string, oldUserID string) (generated.PullRequest, error) {
-	pr, err := i.prRepository.ReassignPullRequest(ctx, id, oldUserID)
+func (i *useCaseImpl) PullRequestReassign(ctx context.Context, id string, oldUserID string) (generated.PullRequest, string, error) {
+	pr, replaced, err := i.prRepository.ReassignPullRequest(ctx, id, oldUserID)
 	if err != nil {
-		return generated.PullRequest{}, err
+		return generated.PullRequest{}, "", err
 	}
 
 	status := generated.PullRequestShortStatusOPEN
@@ -68,5 +68,5 @@ func (i *useCaseImpl) PullRequestReassign(ctx context.Context, id string, oldUse
 		PullRequestId:     pr.ID,
 		PullRequestName:   pr.Name,
 		Status:            generated.PullRequestStatus(status),
-	}, nil
+	}, replaced, nil
 }

@@ -1,7 +1,25 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/KonbIgoGo/pr_splitter/generated"
+	"github.com/gin-gonic/gin"
+)
 
 func (i *implementation) PostTeamAdd(c *gin.Context) {
+	var body generated.PostTeamAddJSONRequestBody
 
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, struct{}{})
+		return
+	}
+
+	team, err := i.teamUseCase.TeamAdd(c.Request.Context(), body.TeamName, body.Members)
+	if err != nil {
+		code, errRes := convertErrors(err)
+		c.JSON(code, errRes)
+	}
+
+	c.JSON(http.StatusCreated, team)
 }

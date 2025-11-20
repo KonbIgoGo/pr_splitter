@@ -9,7 +9,10 @@ import (
 var _ generated.ServerInterface = (*implementation)(nil)
 
 type implementation struct {
-	logger *zap.Logger
+	logger      *zap.Logger
+	prUseCase   usecase.PRUseCase
+	userUseCase usecase.UserUseCase
+	teamUseCase usecase.TeamUseCase
 }
 
 func New(
@@ -19,6 +22,9 @@ func New(
 	teamUseCase usecase.TeamUseCase,
 ) *implementation {
 	return &implementation{
-		logger: logger,
+		logger:      logger,
+		prUseCase:   prUseCase,
+		userUseCase: userUseCase,
+		teamUseCase: teamUseCase,
 	}
 }

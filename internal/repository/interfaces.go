@@ -6,10 +6,11 @@ import (
 	"github.com/KonbIgoGo/pr_splitter/internal/entity"
 )
 
+//go:generate go tool go.uber.org/mock/mockgen -source=./interfaces.go -destination=../../mocks/repositoryMock.go -package=mocks
 type PRRepository interface {
 	CreatePullRequest(ctx context.Context, id string, name string, authorID string) (entity.PR, error)
 	MergePullRequest(ctx context.Context, id string) (entity.PR, error)
-	ReassignPullRequest(ctx context.Context, id string, oldUserID string) (entity.PR, error)
+	ReassignPullRequest(ctx context.Context, id string, oldUserID string) (entity.PR, string, error)
 }
 
 type UserRepository interface {

@@ -1,5 +1,25 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-func (i *implementation) PostPullRequestMerge(c *gin.Context) {}
+	"github.com/KonbIgoGo/pr_splitter/generated"
+	"github.com/gin-gonic/gin"
+)
+
+func (i *implementation) PostPullRequestMerge(c *gin.Context) {
+	var body generated.PostPullRequestMergeJSONBody
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, struct{}{})
+		return
+	}
+
+	pr, err := i.prUseCase.PullRequestMerge(c.Request.Context(), body.PullRequestId)
+	if err != nil {
+		code, errRes := convertErrors(err)
+		c.JSON(code, errRes)
+	}
+
+	c.JSON(http.StatusOK, pr)
+}
