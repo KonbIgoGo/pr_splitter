@@ -15,6 +15,7 @@ import (
 )
 
 func TestUserHandlers_GetReviewStatistic(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -30,6 +31,7 @@ func TestUserHandlers_GetReviewStatistic(t *testing.T) {
 	})
 
 	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 		expected := []generated.UserPRAuthorityStatistic{
 			{
 				UserId:   "u1",
@@ -59,6 +61,7 @@ func TestUserHandlers_GetReviewStatistic(t *testing.T) {
 	})
 
 	t.Run("internal_error", func(t *testing.T) {
+		t.Parallel()
 		userUC.EXPECT().
 			UsersGetReviewStatistic(gomock.Any()).
 			Return(nil, errors.New("some error"))

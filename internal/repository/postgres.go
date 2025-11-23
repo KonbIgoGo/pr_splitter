@@ -51,7 +51,7 @@ func (p *postgresRepository) GetUsersReviewStatistic(ctx context.Context) ([]ent
 
 	stats, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (entity.Statistic, error) {
 		var s entity.Statistic
-		if err := row.Scan(&s.UserID, &s.Data); err != nil {
+		if err = row.Scan(&s.UserID, &s.Data); err != nil {
 			return entity.Statistic{}, err
 		}
 		return s, nil
@@ -96,7 +96,7 @@ func (p *postgresRepository) GetUsersPRAuthorityStatistic(ctx context.Context) (
 
 	stats, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (entity.Statistic, error) {
 		var s entity.Statistic
-		if err := row.Scan(&s.UserID, &s.Data); err != nil {
+		if err = row.Scan(&s.UserID, &s.Data); err != nil {
 			return entity.Statistic{}, err
 		}
 		return s, nil
