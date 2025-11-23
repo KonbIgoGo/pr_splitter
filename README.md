@@ -1,6 +1,7 @@
 # avito_test
 
 # Сборка и запуск
+- `docker compose up` - поднимет контейнер с postgres и с самим сервисом.
 
 Основные команды Makefile:
 
@@ -19,9 +20,10 @@ run load test
 k6 run ./tank/load-test.js
 
 TOTAL RESULTS
-    checks_total.......: 2360    41.859116/s
-    checks_succeeded...: 100.00% 2360 out of 2360
-    checks_failed......: 0.00%   0 out of 2360
+
+    - `checks_total`.......: 2360    41.859116/s
+    - `checks_succeeded`...: 100.00% 2360 out of 2360
+    - `checks_failed`......: 0.00%   0 out of 2360
 
     ✓ team created or already exists (201/400)
     ✓ getReview fallback (200)
