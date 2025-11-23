@@ -17,7 +17,7 @@ import (
 func TestUserHandlers_GetReviewStatistic(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	t.Cleanup(func() { ctrl.Finish() })
 
 	userUC := mocks.NewMockUserUseCase(ctrl)
 
