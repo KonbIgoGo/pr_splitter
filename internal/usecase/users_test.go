@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -15,7 +14,7 @@ import (
 func TestUserUseCases(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	ctrl := gomock.NewController(t)
 
 	userRepo := mocks.NewMockUserRepository(ctrl)
@@ -54,7 +53,6 @@ func TestUserUseCases(t *testing.T) {
 		}
 
 		for _, tc := range tcs {
-
 			t.Run(tc.name, func(t *testing.T) {
 				if tc.errExpected {
 					userRepo.EXPECT().
@@ -131,7 +129,6 @@ func TestUserUseCases(t *testing.T) {
 		}
 
 		for _, tc := range tcs {
-
 			t.Run(tc.name, func(t *testing.T) {
 				if tc.errExpected {
 					userRepo.EXPECT().

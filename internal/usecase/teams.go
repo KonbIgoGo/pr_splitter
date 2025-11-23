@@ -41,7 +41,6 @@ func (i *useCaseImpl) TeamAdd(ctx context.Context, name string, members []genera
 		Members:  parseTeamMembers(team.Members),
 		TeamName: team.TeamName,
 	}, nil
-
 }
 func (i *useCaseImpl) TeamGet(ctx context.Context, name string) (generated.Team, error) {
 	team, err := i.teamRepository.GetTeam(ctx, name)

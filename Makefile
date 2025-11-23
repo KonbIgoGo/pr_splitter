@@ -9,7 +9,7 @@ all: generate lint test
 .PHONY: lint
 lint:
 	echo 'Running linter on files...'
-	$(GOLANGCI_BIN) run \
+	$(GOLANGCI_BIN) run --fix \
 	--config=.golangci.yaml \
 	--sort-results \
 	--max-issues-per-linter=0 \
@@ -22,6 +22,7 @@ test:
 	${GO_TEST} ${GO_TEST_ARGS}
 
 bin-deps: .bin-deps
+
 
 .bin-deps: export GOBIN := $(LOCAL_BIN)
 .bin-deps: .create-bin 
@@ -48,7 +49,6 @@ fast-generate: .generate
 	rm -rf ./docs/spec
 	mkdir -p ./docs/spec
 
-	rm -rf ~/.easyp/
 
 	(PATH="$(PATH):$(LOCAL_BIN)")
 

@@ -8,7 +8,7 @@ import (
 )
 
 type userGetReviewResp struct {
-	UserId       string                       `json:"user_id"`
+	UserID       string                       `json:"user_id"`
 	PullRequests []generated.PullRequestShort `json:"pull_requests"`
 }
 
@@ -18,8 +18,8 @@ func (i *implementation) GetUsersGetReview(c *gin.Context, params generated.GetU
 	if err != nil {
 		code, errRes := convertErrors(err)
 		c.JSON(code, errRes)
+		return
 	}
 
 	c.JSON(http.StatusOK, userGetReviewResp{id, prs})
-
 }

@@ -47,7 +47,7 @@ export default function () {
     let authorId = null;
 
     check(teamRes, {
-        'team created or already exists (201/400)': (r) => r.status === 201 || r.status === 400,
+        'team created or already exists (201 or 400)': (r) => r.status === 201 || r.status === 400,
     });
 
     if (teamRes.status === 201) {
@@ -92,7 +92,7 @@ export default function () {
         });
 
         check(prRes, {
-            'pr create (201/404/409)': (r) =>
+            'pr create (201 or 404 or 409)': (r) =>
                 r.status === 201 || r.status === 404 || r.status === 409,
         });
 
@@ -129,7 +129,7 @@ export default function () {
         });
 
         check(reassignRes, {
-            'reassign (200/404/409)': (r) =>
+            'reassign (200 or 404 or 409)': (r) =>
                 r.status === 200 || r.status === 404 || r.status === 409,
         });
     }
@@ -160,7 +160,7 @@ export default function () {
         });
 
         check(mergeRes, {
-            'merge (200/404)': (r) => r.status === 200 || r.status === 404,
+            'merge (200 or 404)': (r) => r.status === 200 || r.status === 404,
         });
     }
 
@@ -178,7 +178,7 @@ export default function () {
         });
 
         check(setIsActiveRes, {
-            'setIsActive (200/404)': (r) => r.status === 200 || r.status === 404,
+            'setIsActive (200 or 404)': (r) => r.status === 200 || r.status === 404,
         });
     }
 

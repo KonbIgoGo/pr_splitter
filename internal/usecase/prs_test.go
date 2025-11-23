@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -15,7 +14,7 @@ import (
 
 func TestPRUseCases(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 	ctrl := gomock.NewController(t)
 	prRepo := mocks.NewMockPRRepository(ctrl)
 	usecase := New(nil, prRepo, nil, nil)

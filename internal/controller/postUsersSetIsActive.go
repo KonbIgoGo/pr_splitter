@@ -11,7 +11,7 @@ func (i *implementation) PostUsersSetIsActive(c *gin.Context) {
 	var body generated.PostUsersSetIsActiveJSONBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(400, struct{}{})
+		c.JSON(http.StatusConflict, struct{}{})
 		return
 	}
 
@@ -19,6 +19,7 @@ func (i *implementation) PostUsersSetIsActive(c *gin.Context) {
 	if err != nil {
 		code, errRes := convertErrors(err)
 		c.JSON(code, errRes)
+		return
 	}
 
 	c.JSON(http.StatusOK, user)

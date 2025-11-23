@@ -26,6 +26,8 @@ func Run(logger *zap.Logger, cfg *config.Config) {
 
 	if err != nil {
 		logger.Error("can not create pgxpool", zap.Error(err))
+		cancel()
+		//nolint:gocritic // canceled
 		os.Exit(1)
 	}
 	defer dbPool.Close()
@@ -37,15 +39,17 @@ func Run(logger *zap.Logger, cfg *config.Config) {
 	useCases := usecase.New(logger, repo, repo, repo)
 	ctrl := controller.New(logger, useCases, useCases, useCases)
 
-	go runRest(cfg, ctrl)
+	go runRest(cfg, logger, ctrl)
 
 	<-ctx.Done()
 	time.Sleep(time.Second)
-
 }
 
-func runRest(cfg *config.Config, service generated.ServerInterface) {
+func runRest(cfg *config.Config, logger *zap.Logger, service generated.ServerInterface) {
 	r := gin.Default()
 	generated.RegisterHandlers(r, service)
-	r.Run(":" + cfg.HTTP.Port)
+	err := r.Run(":" + cfg.HTTP.Port)
+	if err != nil {
+		logger.Error("failed running service", zap.Error(err))
+	}
 }

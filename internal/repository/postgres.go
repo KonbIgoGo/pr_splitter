@@ -64,8 +64,7 @@ func (p *postgresRepository) CreatePullRequest(ctx context.Context, id string, n
 	fmt.Println("collected")
 
 	ids, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (string, error) {
-		var id string
-		if err := row.Scan(&id); err != nil {
+		if err = row.Scan(&id); err != nil {
 			return "", err
 		}
 		return id, nil
@@ -226,7 +225,7 @@ func (p *postgresRepository) ReassignPullRequest(ctx context.Context, id string,
 	`
 
 	var (
-		prId, name, authorID string
+		prID, name, authorID string
 		status               string
 		createdAt            time.Time
 		mergedAt             *time.Time
@@ -235,7 +234,7 @@ func (p *postgresRepository) ReassignPullRequest(ctx context.Context, id string,
 	)
 
 	err = tx.QueryRow(ctx, checkQuery, id, oldUserID).Scan(
-		&prId, &name, &authorID, &status, &createdAt, &mergedAt,
+		&prID, &name, &authorID, &status, &createdAt, &mergedAt,
 		&userExists, &isAssigned,
 	)
 
@@ -248,6 +247,7 @@ func (p *postgresRepository) ReassignPullRequest(ctx context.Context, id string,
 	if !userExists {
 		return entity.PR{}, "", entity.ErrUserNotFound
 	}
+	//nolint:goconst // used in map
 	if status == "MERGED" {
 		return entity.PR{}, "", entity.ErrPRMerged
 	}
@@ -436,7 +436,7 @@ func (p *postgresRepository) GetReviewUser(ctx context.Context, id string) ([]en
 		var status string
 		var mergedAt sql.NullTime
 
-		if err := row.Scan(
+		if err = row.Scan(
 			&p.ID,
 			&p.Name,
 			&p.AuthorID,
@@ -527,7 +527,9 @@ func (p *postgresRepository) AddTeam(ctx context.Context, team entity.Team) (ent
 		args = append(args, team.TeamName)
 
 		for i, member := range team.Members {
+			//nolint:mnd // defined indexes
 			base := 2 + i*3
+			//nolint:mnd // defined indexes
 			valueStrings[i] = fmt.Sprintf("($%d,$%d,$%d::boolean)", base, base+1, base+2)
 			args = append(args,
 				member.UserID,
@@ -556,7 +558,6 @@ func (p *postgresRepository) AddTeam(ctx context.Context, team entity.Team) (ent
 }
 
 func (p *postgresRepository) GetTeam(ctx context.Context, name string) (team entity.Team, err error) {
-
 	const checkTeamQuery = /* sql */ `
         SELECT 1
         FROM team
@@ -584,7 +585,7 @@ func (p *postgresRepository) GetTeam(ctx context.Context, name string) (team ent
 
 	members, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (entity.TeamMember, error) {
 		var m entity.TeamMember
-		if err := row.Scan(&m.UserID, &m.Username, &m.IsActive); err != nil {
+		if err = row.Scan(&m.UserID, &m.Username, &m.IsActive); err != nil {
 			return entity.TeamMember{}, err
 		}
 		return m, nil
@@ -605,9 +606,8 @@ func (p *postgresRepository) GetTeam(ctx context.Context, name string) (team ent
 func mapStatus(status string) entity.Status {
 	if status == "MERGED" {
 		return entity.MERGED
-	} else {
-		return entity.OPEN
 	}
+	return entity.OPEN
 }
 
 func NewPostgresRepository(db *pgxpool.Pool) *postgresRepository {

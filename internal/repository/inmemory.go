@@ -25,14 +25,14 @@ type inmemoryImpl struct {
 	teamRepo   map[string]*entity.Team
 }
 
-func (i *inmemoryImpl) getUserTeamIDs(userId string) ([]string, error) {
+func (i *inmemoryImpl) getUserTeamIDs(userID string) ([]string, error) {
 	i.userRepoMx.RLock()
 	defer i.userRepoMx.RUnlock()
 
 	i.teamRepoMx.RLock()
 	defer i.teamRepoMx.RUnlock()
 
-	user, ok := i.userRepo[userId]
+	user, ok := i.userRepo[userID]
 	if !ok {
 		return nil, entity.ErrUserNotFound
 	}
@@ -188,7 +188,7 @@ func (i *inmemoryImpl) addUser(user entity.User) {
 	i.userRepo[user.ID].TeamName = u.TeamName
 }
 
-func (i *inmemoryImpl) GetTeam(ctx context.Context, name string) (entity.Team, error) {
+func (i *inmemoryImpl) GetTeam(_ context.Context, name string) (entity.Team, error) {
 	i.teamRepoMx.RLock()
 	defer i.teamRepoMx.RUnlock()
 
@@ -235,6 +235,7 @@ func (i *inmemoryImpl) pickWithExclusion(ids []string, exclude []string) (string
 
 func (i *inmemoryImpl) pickTwoWithExclusion(ids []string, exclude string) []string {
 	excludes := []string{exclude}
+	//nolint:mnd // picking exactly 2 elems
 	res := make([]string, 0, 2)
 
 	first, err := i.pickWithExclusion(ids, excludes)

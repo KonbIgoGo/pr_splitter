@@ -13,6 +13,7 @@ func (i *implementation) GetTeamGet(c *gin.Context, params generated.GetTeamGetP
 	if err != nil {
 		status, errRes := convertErrors(err)
 		c.JSON(status, errRes)
+		return
 	}
 
 	c.JSON(http.StatusOK, team)

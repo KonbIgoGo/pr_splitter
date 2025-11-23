@@ -28,7 +28,6 @@ func (i *useCaseImpl) UserGetReview(ctx context.Context, id string) ([]generated
 
 	res := make([]generated.PullRequestShort, 0, len(reviews))
 	for _, p := range reviews {
-
 		status := generated.PullRequestShortStatusOPEN
 		if p.Status == entity.MERGED {
 			status = generated.PullRequestShortStatusMERGED

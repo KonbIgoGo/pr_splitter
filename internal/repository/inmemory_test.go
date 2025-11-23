@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func seedDefaultTeams(t *testing.T, repo *inmemoryImpl, ctx context.Context) {
+func seedDefaultTeams(ctx context.Context, t *testing.T, repo *inmemoryImpl) {
 	t.Helper()
 
 	_, err := repo.AddTeam(ctx, entity.Team{
@@ -65,7 +65,7 @@ func seedDefaultTeams(t *testing.T, repo *inmemoryImpl, ctx context.Context) {
 
 func TestInmemory_AddTeam(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type testCase struct {
 		name      string
@@ -145,7 +145,7 @@ func TestInmemory_AddTeam(t *testing.T) {
 
 func TestInmemory_GetTeam(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type testCase struct {
 		name      string
@@ -221,7 +221,7 @@ func TestInmemory_CreatePullRequest(t *testing.T) {
 
 	type testCase struct {
 		name              string
-		seed              func(t *testing.T, repo *inmemoryImpl, ctx context.Context)
+		seed              func(ctx context.Context, t *testing.T, repo *inmemoryImpl)
 		id                string
 		prName            string
 		authorID          string
@@ -230,7 +230,7 @@ func TestInmemory_CreatePullRequest(t *testing.T) {
 		checkReviewersLen bool
 	}
 
-	emptySeed := func(_ *testing.T, _ *inmemoryImpl, _ context.Context) {}
+	emptySeed := func(_ context.Context, _ *testing.T, _ *inmemoryImpl) {}
 
 	tests := []testCase{
 		{
@@ -262,8 +262,9 @@ func TestInmemory_CreatePullRequest(t *testing.T) {
 		},
 		{
 			name: "duplicate_id",
-			seed: func(t *testing.T, repo *inmemoryImpl, ctx context.Context) {
-				seedDefaultTeams(t, repo, ctx)
+			seed: func(ctx context.Context, t *testing.T, repo *inmemoryImpl) {
+				t.Helper()
+				seedDefaultTeams(ctx, t, repo)
 				_, err := repo.CreatePullRequest(ctx, "dup", "dup", "u1")
 				require.NoError(t, err)
 			},
@@ -284,7 +285,7 @@ func TestInmemory_CreatePullRequest(t *testing.T) {
 		},
 		{
 			name: "team_not_found",
-			seed: func(t *testing.T, repo *inmemoryImpl, _ context.Context) {
+			seed: func(_ context.Context, t *testing.T, repo *inmemoryImpl) {
 				t.Helper()
 				repo.userRepo["ghost"] = &entity.User{
 					ID:       "ghost",
@@ -305,11 +306,11 @@ func TestInmemory_CreatePullRequest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
+			ctx := t.Context()
 			repo := NewInmemoryRepository()
 
 			if tc.seed != nil {
-				tc.seed(t, repo, ctx)
+				tc.seed(ctx, t, repo)
 			}
 
 			pr, err := repo.CreatePullRequest(ctx, tc.id, tc.prName, tc.authorID)
@@ -375,7 +376,8 @@ func TestInmemory_MergePullRequest(t *testing.T) {
 		{
 			name: "merge_and_idempotent",
 			seed: func(t *testing.T, repo *inmemoryImpl, ctx context.Context) string {
-				seedDefaultTeams(t, repo, ctx)
+				t.Helper()
+				seedDefaultTeams(ctx, t, repo)
 				pr, err := repo.CreatePullRequest(ctx, "merge_id", "merge_name", "u1")
 				require.NoError(t, err)
 				return pr.ID
@@ -388,7 +390,7 @@ func TestInmemory_MergePullRequest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
+			ctx := t.Context()
 			repo := NewInmemoryRepository()
 
 			prID := tc.seed(t, repo, ctx)
@@ -426,7 +428,8 @@ func TestInmemory_ReassignPullRequest(t *testing.T) {
 		{
 			name: "success_reassign",
 			prepare: func(t *testing.T, repo *inmemoryImpl, ctx context.Context) (string, string) {
-				seedDefaultTeams(t, repo, ctx)
+				t.Helper()
+				seedDefaultTeams(ctx, t, repo)
 				pr, err := repo.CreatePullRequest(ctx, "reassign_id", "reassign", "u1")
 				require.NoError(t, err)
 				require.Len(t, pr.AssignedReviewersID, 2)
@@ -437,7 +440,8 @@ func TestInmemory_ReassignPullRequest(t *testing.T) {
 		{
 			name: "pr_not_found",
 			prepare: func(t *testing.T, repo *inmemoryImpl, ctx context.Context) (string, string) {
-				seedDefaultTeams(t, repo, ctx)
+				t.Helper()
+				seedDefaultTeams(ctx, t, repo)
 				return "unknown_pr", "u1"
 			},
 			wantErr: entity.ErrPRNotFound,
@@ -445,7 +449,8 @@ func TestInmemory_ReassignPullRequest(t *testing.T) {
 		{
 			name: "old_user_not_reviewer",
 			prepare: func(t *testing.T, repo *inmemoryImpl, ctx context.Context) (string, string) {
-				seedDefaultTeams(t, repo, ctx)
+				t.Helper()
+				seedDefaultTeams(ctx, t, repo)
 				pr, err := repo.CreatePullRequest(ctx, "reassign2", "reassign2", "u1")
 				require.NoError(t, err)
 				return pr.ID, pr.AuthorID
@@ -458,7 +463,7 @@ func TestInmemory_ReassignPullRequest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
+			ctx := t.Context()
 			repo := NewInmemoryRepository()
 
 			prID, oldUserID := tc.prepare(t, repo, ctx)
@@ -489,7 +494,7 @@ func TestInmemory_ReassignPullRequest(t *testing.T) {
 
 func TestInmemory_SetIsActiveUser(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	type testCase struct {
 		name      string
@@ -556,10 +561,10 @@ func TestInmemory_SetIsActiveUser(t *testing.T) {
 
 func TestInmemory_GetReviewUser(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	repo := NewInmemoryRepository()
-	seedDefaultTeams(t, repo, ctx)
+	seedDefaultTeams(ctx, t, repo)
 
 	pr1, err := repo.CreatePullRequest(ctx, "pr1", "pr1", "u1")
 	require.NoError(t, err)
@@ -601,6 +606,6 @@ func TestInmemory_GetReviewUser(t *testing.T) {
 
 		prs, err := repo.GetReviewUser(ctx, "unknown_user")
 		require.NoError(t, err)
-		require.Len(t, prs, 0)
+		require.Empty(t, prs)
 	})
 }

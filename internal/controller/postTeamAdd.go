@@ -11,7 +11,7 @@ func (i *implementation) PostTeamAdd(c *gin.Context) {
 	var body generated.PostTeamAddJSONRequestBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(400, struct{}{})
+		c.JSON(http.StatusBadRequest, struct{}{})
 		return
 	}
 
@@ -19,6 +19,7 @@ func (i *implementation) PostTeamAdd(c *gin.Context) {
 	if err != nil {
 		code, errRes := convertErrors(err)
 		c.JSON(code, errRes)
+		return
 	}
 
 	c.JSON(http.StatusCreated, team)
