@@ -18,7 +18,6 @@ func TestUserUseCases(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	userRepo := mocks.NewMockUserRepository(ctrl)
-	// teamRepo, prRepo, otherDeps здесь не нужны
 	usecase := New(nil, nil, userRepo, nil)
 
 	t.Run("user set is active", func(t *testing.T) {
@@ -160,6 +159,122 @@ func TestUserUseCases(t *testing.T) {
 							expectedStatus = generated.PullRequestShortStatusMERGED
 						}
 						require.Equal(t, expectedStatus, dst.Status)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("users get review statistic", func(t *testing.T) {
+		t.Parallel()
+
+		type testCase struct {
+			name        string
+			stats       []entity.Statistic
+			errExpected bool
+		}
+
+		tcs := []testCase{
+			{
+				name:  "no stats",
+				stats: []entity.Statistic{},
+			},
+			{
+				name: "several stats",
+				stats: []entity.Statistic{
+					{UserID: "u1", Data: 2},
+					{UserID: "u2", Data: 5},
+				},
+			},
+			{
+				name:        "repository error",
+				stats:       nil,
+				errExpected: true,
+			},
+		}
+
+		for _, tc := range tcs {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.errExpected {
+					userRepo.EXPECT().
+						GetUsersReviewStatistic(ctx).
+						Return(nil, errors.New("some error"))
+				} else {
+					userRepo.EXPECT().
+						GetUsersReviewStatistic(ctx).
+						Return(tc.stats, nil)
+				}
+
+				res, err := usecase.UsersGetReviewStatistic(ctx)
+
+				if tc.errExpected {
+					require.Error(t, err)
+					require.Nil(t, res)
+				} else {
+					require.NoError(t, err)
+					require.Len(t, res, len(tc.stats))
+
+					for i, s := range tc.stats {
+						require.Equal(t, s.UserID, res[i].UserId)
+						require.Equal(t, s.Data, res[i].PrsCount)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("users get PR authority statistic", func(t *testing.T) {
+		t.Parallel()
+
+		type testCase struct {
+			name        string
+			stats       []entity.Statistic
+			errExpected bool
+		}
+
+		tcs := []testCase{
+			{
+				name:  "no stats",
+				stats: []entity.Statistic{},
+			},
+			{
+				name: "several stats",
+				stats: []entity.Statistic{
+					{UserID: "u10", Data: 1},
+					{UserID: "u20", Data: 3},
+				},
+			},
+			{
+				name:        "repository error",
+				stats:       nil,
+				errExpected: true,
+			},
+		}
+
+		for _, tc := range tcs {
+			t.Run(tc.name, func(t *testing.T) {
+				if tc.errExpected {
+					userRepo.EXPECT().
+						GetUsersPRAuthorityStatistic(ctx).
+						Return(nil, errors.New("some error"))
+				} else {
+					userRepo.EXPECT().
+						GetUsersPRAuthorityStatistic(ctx).
+						Return(tc.stats, nil)
+				}
+
+				res, err := usecase.UsersGetPRAuthorityStatistic(ctx)
+
+				if tc.errExpected {
+					require.Error(t, err)
+					require.Nil(t, res)
+				} else {
+					require.NoError(t, err)
+					require.Len(t, res, len(tc.stats))
+
+					for i, s := range tc.stats {
+						require.Equal(t, s.UserID, res[i].UserId)
+						require.Equal(t, s.Data, res[i].PrsCount)
 					}
 				}
 			})

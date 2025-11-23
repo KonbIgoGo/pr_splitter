@@ -17,6 +17,8 @@ type PRUseCase interface {
 }
 
 type UserUseCase interface {
+	UsersGetReviewStatistic(ctx context.Context) ([]generated.UserPRAuthorityStatistic, error)
+	UsersGetPRAuthorityStatistic(ctx context.Context) ([]generated.UserPRAuthorityStatistic, error)
 	UserSetIsActive(ctx context.Context, id string, isActive bool) (generated.User, error)
 	UserGetReview(ctx context.Context, id string) ([]generated.PullRequestShort, error)
 }

@@ -14,6 +14,8 @@ type PRRepository interface {
 }
 
 type UserRepository interface {
+	GetUsersReviewStatistic(ctx context.Context) ([]entity.Statistic, error)
+	GetUsersPRAuthorityStatistic(ctx context.Context) ([]entity.Statistic, error)
 	SetIsActiveUser(ctx context.Context, id string, isActive bool) (entity.User, error)
 	GetReviewUser(ctx context.Context, id string) ([]entity.PR, error)
 }

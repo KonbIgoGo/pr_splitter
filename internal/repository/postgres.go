@@ -23,6 +23,96 @@ type postgresRepository struct {
 	db *pgxpool.Pool
 }
 
+func (p *postgresRepository) GetUsersReviewStatistic(ctx context.Context) ([]entity.Statistic, error) {
+	tx, err := p.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = tx.Rollback(ctx)
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	const getReviewStatisticQuery = /* sql */ `
+		SELECT
+			reviewer_id,
+			COUNT(*) AS amount
+		FROM pr_reviewer
+		GROUP BY reviewer_id
+		ORDER BY reviewer_id;
+	`
+
+	rows, err := tx.Query(ctx, getReviewStatisticQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (entity.Statistic, error) {
+		var s entity.Statistic
+		if err := row.Scan(&s.UserID, &s.Data); err != nil {
+			return entity.Statistic{}, err
+		}
+		return s, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
+func (p *postgresRepository) GetUsersPRAuthorityStatistic(ctx context.Context) ([]entity.Statistic, error) {
+	tx, err := p.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = tx.Rollback(ctx)
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	const getPRAuthorityStatisticQuery = /* sql */ `
+		SELECT
+			author_id,
+			COUNT(*) AS amount
+		FROM pr
+		GROUP BY author_id
+		ORDER BY author_id;
+	`
+
+	rows, err := tx.Query(ctx, getPRAuthorityStatisticQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (entity.Statistic, error) {
+		var s entity.Statistic
+		if err := row.Scan(&s.UserID, &s.Data); err != nil {
+			return entity.Statistic{}, err
+		}
+		return s, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
 func (p *postgresRepository) CreatePullRequest(ctx context.Context, id string, name string, authorID string) (entity.PR, error) {
 	tx, err := p.db.Begin(ctx)
 	if err != nil {
@@ -121,6 +211,7 @@ func (p *postgresRepository) CreatePullRequest(ctx context.Context, id string, n
 	}
 	return res, nil
 }
+
 func (p *postgresRepository) MergePullRequest(ctx context.Context, id string) (entity.PR, error) {
 	tx, err := p.db.Begin(ctx)
 	if err != nil {
@@ -183,6 +274,7 @@ func (p *postgresRepository) MergePullRequest(ctx context.Context, id string) (e
 	}
 	return res, nil
 }
+
 func (p *postgresRepository) ReassignPullRequest(ctx context.Context, id string, oldUserID string) (entity.PR, string, error) {
 	tx, err := p.db.Begin(ctx)
 	if err != nil {

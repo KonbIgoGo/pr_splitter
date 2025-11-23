@@ -120,6 +120,24 @@ components:
         status:
           type: string
           enum: [OPEN, MERGED]
+    UserReviewStatistic:
+      type: object
+      required: [ user_id, assignments_count ]
+      properties:
+        user_id:
+          type: string
+        assignments_count:
+          type: integer
+          description: Количество PR, где пользователь был назначен ревьювером
+    UserPRAuthorityStatistic:
+      type: object
+      required: [ user_id, prs_count ]
+      properties:
+        user_id:
+          type: string
+        prs_count:
+          type: integer
+          description: Количество PR, где пользователь выступает автором
 
 paths:
   /team/add:
@@ -419,3 +437,41 @@ paths:
                     pull_request_name: Add search
                     author_id: u1
                     status: OPEN
+
+  /users/getReviewStatistic:
+    get:
+      tags: [Users]
+      summary: Получить статистику по количеству назначений ревьювером
+      responses:
+        '200':
+          description: Список пользователей и количество их назначений ревьювером
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserReviewStatistic'
+              example:
+                - user_id: u1
+                  assignments_count: 5
+                - user_id: u2
+                  assignments_count: 3
+
+  /users/getPRAuthorityStatistic:
+    get:
+      tags: [Users]
+      summary: Получить статистику по количеству PR
+      responses:
+        '200':
+          description: Список пользователей и количество их PR
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPRAuthorityStatistic'
+              example:
+                - user_id: u1
+                  prs_count: 4
+                - user_id: u2
+                  prs_count: 2

@@ -51,6 +51,60 @@ func (i *inmemoryImpl) getUserTeamIDs(userID string) ([]string, error) {
 	return res, nil
 }
 
+func (i *inmemoryImpl) GetUsersReviewStatistic(_ context.Context) ([]entity.Statistic, error) {
+	i.prRepoMx.RLock()
+	defer i.prRepoMx.RUnlock()
+
+	counts := make(map[string]int)
+	for _, pr := range i.prRepo {
+		for _, reviewerID := range pr.AssignedReviewersID {
+			counts[reviewerID]++
+		}
+	}
+
+	ids := make([]string, 0, len(counts))
+	for id := range counts {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+
+	res := make([]entity.Statistic, 0, len(ids))
+	for _, id := range ids {
+		res = append(res, entity.Statistic{
+			UserID: id,
+			Data:   counts[id],
+		})
+	}
+
+	return res, nil
+}
+
+func (i *inmemoryImpl) GetUsersPRAuthorityStatistic(_ context.Context) ([]entity.Statistic, error) {
+	i.prRepoMx.RLock()
+	defer i.prRepoMx.RUnlock()
+
+	counts := make(map[string]int)
+	for _, pr := range i.prRepo {
+		counts[pr.AuthorID]++
+	}
+
+	ids := make([]string, 0, len(counts))
+	for id := range counts {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+
+	res := make([]entity.Statistic, 0, len(ids))
+	for _, id := range ids {
+		res = append(res, entity.Statistic{
+			UserID: id,
+			Data:   counts[id],
+		})
+	}
+
+	return res, nil
+}
+
 func (i *inmemoryImpl) CreatePullRequest(_ context.Context, id string, name string, authorID string) (entity.PR, error) {
 	i.prRepoMx.Lock()
 	defer i.prRepoMx.Unlock()
