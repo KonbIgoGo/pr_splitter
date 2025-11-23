@@ -344,7 +344,7 @@ paths:
                 old_user_id: { type: string }
             example:
               pull_request_id: pr-1001
-              old_reviewer_id: u2
+              old_user_id: u2
       responses:
         '200':
           description: Переназначение выполнено

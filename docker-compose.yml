@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+
+  application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HTTP_PORT: "${HTTP_PORT}"
+      POSTGRES_HOST: "postgres" 
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_MAX_CONN: "${POSTGRES_MAX_CONN}"
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    networks:
+      - internal
+  
+  postgres:
+    container_name: 'postgres'
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    command:
+      - "postgres"
+      - "-c"
+      - "port=${POSTGRES_PORT}"
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "PGPASSWORD=${POSTGRES_PASSWORD} pg_isready -U ${POSTGRES_USER} \
+         -d ${POSTGRES_DB} -h postgres -p ${POSTGRES_PORT}"
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    
+volumes:
+  postgres-data:
+
+networks:
+  internal:
+    driver: bridge

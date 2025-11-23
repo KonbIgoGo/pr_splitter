@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/KonbIgoGo/pr_splitter/generated"
 	"github.com/KonbIgoGo/pr_splitter/internal/entity"
@@ -16,48 +17,48 @@ func convertErrors(err error) (int, generated.ErrorResponse) {
 	if errors.Is(err, entity.ErrPRNotFound) ||
 		errors.Is(err, entity.ErrUserNotFound) ||
 		errors.Is(err, entity.ErrPRNotFound) {
-		return 404, generated.ErrorResponse{
+		return http.StatusNotFound, generated.ErrorResponse{
 			Error: Error{
 				Message: err.Error(),
 			},
 		}
 	} else if errors.Is(err, entity.ErrPRAlreadyExists) {
-		return 409, generated.ErrorResponse{
+		return http.StatusConflict, generated.ErrorResponse{
 			Error: Error{
 				Code:    generated.PREXISTS,
 				Message: err.Error(),
 			},
 		}
 	} else if errors.Is(err, entity.ErrTeamAlreadyExists) {
-		return 409, generated.ErrorResponse{
+		return http.StatusConflict, generated.ErrorResponse{
 			Error: Error{
 				Code:    generated.TEAMEXISTS,
 				Message: err.Error(),
 			},
 		}
 	} else if errors.Is(err, entity.ErrPRNoCandidates) {
-		return 409, generated.ErrorResponse{
+		return http.StatusConflict, generated.ErrorResponse{
 			Error: Error{
 				Code:    generated.NOCANDIDATE,
 				Message: err.Error(),
 			},
 		}
 	} else if errors.Is(err, entity.ErrReviewerIsNotAssignedToPR) {
-		return 409, generated.ErrorResponse{
+		return http.StatusConflict, generated.ErrorResponse{
 			Error: Error{
 				Code:    generated.NOTASSIGNED,
 				Message: err.Error(),
 			},
 		}
 	} else if errors.Is(err, entity.ErrPRMerged) {
-		return 409, generated.ErrorResponse{
+		return http.StatusConflict, generated.ErrorResponse{
 			Error: Error{
 				Code:    generated.PRMERGED,
 				Message: err.Error(),
 			},
 		}
 	} else {
-		return 500, generated.ErrorResponse{
+		return http.StatusInternalServerError, generated.ErrorResponse{
 			Error: Error{
 				Message: err.Error(),
 			},

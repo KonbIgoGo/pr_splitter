@@ -27,8 +27,7 @@ bin-deps: .bin-deps
 .bin-deps: .create-bin 
 	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.5 && \
 	GOBIN=$(LOCAL_BIN) go install github.com/rakyll/gotest@v0.0.6 && \
-	GOBIN=$(LOCAL_BIN) go install golang.org/x/tools/cmd/goimports@v0.19.0 && \
-	GOBIN=$(LOCAL_BIN) go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest \
+	GOBIN=$(LOCAL_BIN) go install golang.org/x/tools/cmd/goimports@v0.19.0
 
 .create-bin:
 	rm -rf ./bin

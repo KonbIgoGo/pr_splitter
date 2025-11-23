@@ -9,14 +9,14 @@ import (
 
 type reassignPRREsp struct {
 	Pr         generated.PullRequest `json:"pr"`
-	ReplacedBy string                `json:"replaced_by:"`
+	ReplacedBy string                `json:"replaced_by"`
 }
 
 func (i *implementation) PostPullRequestReassign(c *gin.Context) {
-	var body generated.PostPullRequestReassignJSONBody
+	var body generated.PostPullRequestReassignJSONRequestBody
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(400, struct{}{})
+		c.JSON(http.StatusBadRequest, struct{}{})
 		return
 	}
 
@@ -24,6 +24,7 @@ func (i *implementation) PostPullRequestReassign(c *gin.Context) {
 	if err != nil {
 		code, errRes := convertErrors(err)
 		c.JSON(code, errRes)
+		return
 	}
 
 	c.JSON(http.StatusOK, reassignPRREsp{
