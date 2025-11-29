@@ -25,10 +25,10 @@ TOTAL RESULTS
     - `checks_succeeded`...: 100.00% 2360 out of 2360
     - `checks_failed`......: 0.00%   0 out of 2360
 
-    ✓ team created or already exists (201/400)
+    ✓ team created or already exists (201 or 400)
     ✓ getReview fallback (200)
-    ✓ merge (200/404)
-    ✓ setIsActive (200/404)
+    ✓ merge (200 or 404)
+    ✓ setIsActive (200 or 404)
 
     HTTP
     http_req_duration..............: avg=4.03ms min=951.68µs med=2.72ms max=28.98ms p(90)=11.53ms p(95)=13.53ms
